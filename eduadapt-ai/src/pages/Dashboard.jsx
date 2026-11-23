@@ -30,11 +30,11 @@ export default function Dashboard() {
         {chartData.length ? <ResponsiveContainer width="100%" height={280}><BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="label" tick={{ fontSize: 11 }} interval={0}/><YAxis domain={[0, 100]}/><Tooltip/><Bar dataKey="score" name="Score %" fill="#6855d9" radius={[6, 6, 0, 0]}/></BarChart></ResponsiveContainer> : <div className="empty-state"><p>Your quiz chart will appear here after your first assessment.</p><Link to="/assessment" className="text-link">Take your first quiz</Link></div>}
       </div>
       <div className="panel"><h2>Topics to focus on</h2><p className="muted">Based on your quiz results</p>
-        {performance?.weakTopics?.length ? performance.weakTopics.slice(0, 5).map(item => <div className="topic-row" key={item.topic}><span>{item.topic}</span><strong className="weak">{item.averageScore}% · Practise</strong></div>) : <div className="empty-state compact">No weak topics yet. Complete a quiz to get a recommendation.</div>}
+        {performance?.weakTopics?.length ? performance.weakTopics.slice(0, 5).map(item => <div className="topic-row" key={item.topic}><span>{item.topic}</span><strong className="weak">{item.averageScore}% · Practice</strong></div>) : <div className="empty-state compact">No weak topics yet. Complete a quiz to get a recommendation.</div>}
         <h2 className="subheading">Strong topics</h2>
         {performance?.strongTopics?.length ? performance.strongTopics.slice(0, 5).map(item => <div className="topic-row" key={item.topic}><span>{item.topic}</span><strong className="good">{item.averageScore}% · Strong</strong></div>) : <div className="empty-state compact">Your strong topics will appear here.</div>}
       </div>
     </section>
-    <section className="quick-actions"><Link to="/tutor" className="action-card"><MessageCircle/><div><strong>Ask your AI Tutor</strong><span>Get a concept explained in your language.</span></div></Link><Link to="/assessment" className="action-card"><ClipboardList/><div><strong>Take an assessment</strong><span>Check what you know and what to practise.</span></div></Link></section>
+    <section className="quick-actions"><Link to="/tutor" className="action-card"><MessageCircle/><div><strong>Ask your AI Tutor</strong><span>Get a concept explained in your language.</span></div></Link><Link to="/assessment" className="action-card"><ClipboardList/><div><strong>Take an assessment</strong><span>Check what you know and what to practice.</span></div></Link></section>
   </section>;
 }
