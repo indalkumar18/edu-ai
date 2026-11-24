@@ -78,7 +78,7 @@ router.post("/submit", async (req, res) => {
     return res.json({
       message: "Quiz submitted successfully.", attemptId: attempt._id,
       topic, score, totalQuestions, percentage,
-      feedback: percentage >= 80 ? "Great work! You understand this topic well." : percentage >= 50 ? "Good attempt. Revise the questions you missed and try again." : "Let's review the basics of this topic and practice once more.",
+      feedback: percentage >= 80 ? "Great work! You understand this topic well." : percentage >= 50 ? "Good attempt. Revise the questions you missed and try again." : "Let's review the basics of this topic and practise once more.",
       results: result,
     });
   } catch (error) {

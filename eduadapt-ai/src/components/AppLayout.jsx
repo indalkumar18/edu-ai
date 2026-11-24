@@ -1,55 +1,68 @@
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, MessageCircle, ClipboardList, TrendingUp, Settings, GraduationCap, LogOut, Menu, X } from "lucide-react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, MessageSquare, ClipboardList, TrendingUp, Settings, LogOut, Menu, X } from "lucide-react";
+import Logo from "./Logo";
 import { clearSession } from "../services/api";
+import "../styles/app.css";
+
+const LINKS = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/tutor", label: "AI Tutor", icon: MessageSquare },
+  { to: "/assessment", label: "Assessment", icon: ClipboardList },
+  { to: "/progress", label: "Progress", icon: TrendingUp },
+];
+
+function readUser() {
+  try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
+}
 
 export default function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
-  const user = (() => {
-    try { return JSON.parse(localStorage.getItem("user") || "{}"); }
-    catch { return {}; }
-  })();
+  const location = useLocation();
+  const user = readUser();
+  const current = [...LINKS, { to: "/settings", label: "Settings" }].find(item => location.pathname.startsWith(item.to));
 
   function logout() {
     clearSession();
     navigate("/login", { replace: true });
   }
 
-  const links = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/tutor", label: "AI Tutor", icon: MessageCircle },
-    { to: "/assessment", label: "Assessment", icon: ClipboardList },
-    { to: "/progress", label: "My Progress", icon: TrendingUp },
-    { to: "/settings", label: "Settings", icon: Settings },
-  ];
+  const navClass = ({ isActive }) => `nav-link ${isActive ? "active" : ""}`;
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
-        <div className="brand-row"><GraduationCap size={25}/><h2>EduAdapt AI</h2><button className="mobile-close" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X/></button></div>
-        <p className="menu-label">LEARN</p>
-        <nav className="sidebar-nav">
-          {links.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} end={to === "/dashboard"} onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? "active" : ""}><Icon size={19}/><span>{label}</span></NavLink>)}
+      {menuOpen && <button className="shell-backdrop" onClick={() => setMenuOpen(false)} aria-label="Close navigation" />}
+      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
+        <div className="sidebar-top">
+          <Logo to="/dashboard" />
+          <button className="icon-btn mobile-only" onClick={() => setMenuOpen(false)} aria-label="Close navigation"><X size={20} /></button>
+        </div>
+        <p className="nav-label">Learn</p>
+        <nav className="nav" aria-label="Main">
+          {LINKS.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} className={navClass} onClick={() => setMenuOpen(false)}><Icon size={18} /><span>{label}</span></NavLink>
+          ))}
         </nav>
-        <div className="sidebar-bottom"><p>Learn at your own pace.</p><span>Personalized learning, every day.</span></div>
+        <p className="nav-label">Account</p>
+        <nav className="nav" aria-label="Account">
+          <NavLink to="/settings" className={navClass} onClick={() => setMenuOpen(false)}><Settings size={18} /><span>Settings</span></NavLink>
+        </nav>
+        <div className="sidebar-user">
+          <span className="avatar">{(user.name || "S").charAt(0).toUpperCase()}</span>
+          <div className="user-meta"><strong>{user.name || "Student"}</strong><span>{user.email || ""}</span></div>
+          <button className="icon-btn" onClick={logout} aria-label="Log out" title="Log out"><LogOut size={17} /></button>
+        </div>
       </aside>
-      {menuOpen && <button className="sidebar-backdrop" onClick={() => setMenuOpen(false)} aria-label="Close navigation"/>}
-      <main className="main-content">
-        <header className="topbar">
-          <button className="menu-toggle" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu/></button>
-          <div><span className="eyebrow">YOUR LEARNING SPACE</span><h3>EduAdapt AI</h3></div>
-          <div className="profile-container">
-            <button className="profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen}>
-              <span className="avatar">{(user.name || "S").charAt(0).toUpperCase()}</span>
-              <span className="profile-name">{user.name || "Student"}</span>
-            </button>
-            {profileOpen && <div className="profile-menu"><strong>{user.name || "Student"}</strong><p>{user.email || ""}</p><button onClick={logout}><LogOut size={16}/> Logout</button></div>}
-          </div>
+
+      <div className="shell-main">
+        <header className="mobile-bar">
+          <button className="icon-btn" onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu size={21} /></button>
+          <strong>{current?.label || "EduXai"}</strong>
+          <span className="avatar sm">{(user.name || "S").charAt(0).toUpperCase()}</span>
         </header>
-        <Outlet/>
-      </main>
+        <div className="shell-scroll"><Outlet /></div>
+      </div>
     </div>
   );
 }

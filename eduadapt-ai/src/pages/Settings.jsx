@@ -1,9 +1,51 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
+
+function readUser() {
+  try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
+}
+
 export default function Settings() {
-  let stored = {};
-  try { stored = JSON.parse(localStorage.getItem("user") || "{}"); } catch { stored = {}; }
-  const [language, setLanguage] = useState(stored.preferredLanguage || "English");
+  const stored = readUser();
+  const [language, setLanguage] = useState(stored.preferredLanguage === "Hindi" ? "Hindi" : "English");
   const [saved, setSaved] = useState(false);
-  function save() { localStorage.setItem("user", JSON.stringify({ ...stored, preferredLanguage: language })); setSaved(true); }
-  return <section className="page-content"><div className="page-heading"><div><p className="eyebrow">PERSONALIZE YOUR EXPERIENCE</p><h1>Settings</h1><p>Choose your preferred tutor language.</p></div></div><div className="panel settings-panel"><label htmlFor="language">Preferred language</label><select id="language" value={language} onChange={e => { setLanguage(e.target.value); setSaved(false); }}><option>English</option><option>Hindi</option></select><button className="primary-btn" onClick={save}>Save preference</button>{saved && <p className="success-text">Preference saved on this device.</p>}<p className="muted">The AI Tutor also has its own language selector for each question.</p></div></section>;
+
+  useEffect(() => { document.title = "Settings - EduXai"; }, []);
+
+  function save() {
+    localStorage.setItem("user", JSON.stringify({ ...readUser(), preferredLanguage: language }));
+    setSaved(true);
+  }
+
+  return (
+    <section className="page narrow">
+      <header className="page-head">
+        <p className="eyebrow">Settings</p>
+        <h1>Preferences</h1>
+        <p>Personalise how EduXai works for you.</p>
+      </header>
+
+      <div className="card">
+        <div className="card-head"><h2>Account</h2></div>
+        <dl className="kv">
+          <div><dt>Name</dt><dd>{stored.name || "Student"}</dd></div>
+          <div><dt>Email</dt><dd>{stored.email || "Not available"}</dd></div>
+        </dl>
+      </div>
+
+      <div className="card">
+        <div className="card-head"><h2>Tutor language</h2></div>
+        <p className="muted pad-b">Used as the default language when you open the AI Tutor. You can still change it inside any chat.</p>
+        <div className="segmented" role="group" aria-label="Preferred language">
+          {["English", "Hindi"].map(lang => (
+            <button key={lang} aria-pressed={language === lang} onClick={() => { setLanguage(lang); setSaved(false); }}>{lang}</button>
+          ))}
+        </div>
+        <div className="save-row">
+          <button className="btn btn-primary" onClick={save}>Save preference</button>
+          {saved && <span className="saved"><Check size={15} /> Saved on this device</span>}
+        </div>
+      </div>
+    </section>
+  );
 }
