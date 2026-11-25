@@ -1,54 +1,61 @@
-import { describe, it, expect } from "vitest";
-import { formatTime, letter, cap, scoreTone } from "../src/lib/quiz";
-import { strength, EMAIL_RE } from "../src/lib/password";
-import { groupChats } from "../src/lib/chats";
+import test, { describe } from "node:test";
+import assert from "node:assert/strict";
+import { formatTime, letter, cap, scoreTone } from "../src/lib/quiz.js";
+import { strength, EMAIL_RE } from "../src/lib/password.js";
+import { groupChats } from "../src/lib/chats.js";
 
 describe("quiz helpers", () => {
-  it("formats elapsed seconds as mm:ss", () => {
-    expect(formatTime(0)).toBe("00:00");
-    expect(formatTime(65)).toBe("01:05");
-    expect(formatTime(3599)).toBe("59:59");
+  test("formats elapsed seconds as mm:ss", () => {
+    assert.equal(formatTime(0), "00:00");
+    assert.equal(formatTime(65), "01:05");
+    assert.equal(formatTime(3599), "59:59");
   });
-  it("maps option indexes to letters", () => {
-    expect([0, 1, 2, 3].map(letter)).toEqual(["A", "B", "C", "D"]);
+
+  test("maps option indexes to letters", () => {
+    assert.deepEqual([0, 1, 2, 3].map(letter), ["A", "B", "C", "D"]);
   });
-  it("capitalises difficulty labels", () => {
-    expect(cap("medium")).toBe("Medium");
-    expect(cap("")).toBe("");
-    expect(cap(undefined)).toBe("");
+
+  test("capitalises difficulty labels", () => {
+    assert.equal(cap("medium"), "Medium");
+    assert.equal(cap(""), "");
+    assert.equal(cap(undefined), "");
   });
-  it("picks a tone from the percentage", () => {
-    expect(scoreTone(100)).toBe("good");
-    expect(scoreTone(80)).toBe("good");
-    expect(scoreTone(79)).toBe("mid");
-    expect(scoreTone(50)).toBe("mid");
-    expect(scoreTone(49)).toBe("bad");
+
+  test("picks the correct score tone at the feedback boundaries", () => {
+    assert.equal(scoreTone(100), "good");
+    assert.equal(scoreTone(80), "good");
+    assert.equal(scoreTone(79.99), "mid");
+    assert.equal(scoreTone(50), "mid");
+    assert.equal(scoreTone(49.99), "bad");
   });
 });
 
 describe("password strength", () => {
-  it("is empty for an empty password", () => {
-    expect(strength("")).toMatchObject({ score: 0, label: "" });
+  test("is empty for an empty password", () => {
+    assert.deepEqual(strength("").label, "");
+    assert.equal(strength("").score, 0);
   });
-  it("rates weak, fair, good and strong passwords", () => {
-    expect(strength("abc").label).toBe("Weak");
-    expect(strength("abcdefgh").label).toBe("Weak");
-    expect(strength("abcdefg1").label).toBe("Fair");
-    expect(strength("Abcdefg1").label).toBe("Good");
-    expect(strength("Abcdefg1!").label).toBe("Strong");
+
+  test("rates weak, fair, good and strong passwords", () => {
+    assert.equal(strength("abc").label, "Weak");
+    assert.equal(strength("abcdefgh").label, "Weak");
+    assert.equal(strength("abcdefg1").label, "Fair");
+    assert.equal(strength("Abcdefg1").label, "Good");
+    assert.equal(strength("Abcdefg1!").label, "Strong");
   });
-  it("lists which rules are met", () => {
+
+  test("lists which password rules are met", () => {
     const { checks } = strength("Abcdefg1");
-    expect(checks.filter((c) => c.ok)).toHaveLength(3);
+    assert.equal(checks.filter((check) => check.ok).length, 3);
   });
 });
 
 describe("email validation", () => {
-  it("accepts normal addresses and rejects malformed ones", () => {
-    expect(EMAIL_RE.test("you@example.com")).toBe(true);
-    expect(EMAIL_RE.test("bad")).toBe(false);
-    expect(EMAIL_RE.test("a@b")).toBe(false);
-    expect(EMAIL_RE.test("a b@c.com")).toBe(false);
+  test("accepts normal addresses and rejects malformed ones", () => {
+    assert.equal(EMAIL_RE.test("you@example.com"), true);
+    assert.equal(EMAIL_RE.test("bad"), false);
+    assert.equal(EMAIL_RE.test("a@b"), false);
+    assert.equal(EMAIL_RE.test("a b@c.com"), false);
   });
 });
 
@@ -60,15 +67,17 @@ describe("groupChats", () => {
     { id: "today", updatedAt: now - 1000 },
     { id: "week", updatedAt: now - 3 * day },
   ];
-  it("buckets chats by age and sorts newest first", () => {
+
+  test("buckets chats by age and sorts newest first", () => {
     const grouped = groupChats(chats, now);
-    expect(grouped.map(([label]) => label)).toEqual(["Today", "Previous 7 days", "Older"]);
-    expect(grouped[0][1][0].id).toBe("today");
+    assert.deepEqual(grouped.map(([label]) => label), ["Today", "Previous 7 days", "Older"]);
+    assert.equal(grouped[0][1][0].id, "today");
   });
-  it("omits empty buckets and does not mutate the input", () => {
+
+  test("omits empty buckets and does not mutate the input", () => {
     const input = [{ id: "a", updatedAt: now }];
-    expect(groupChats(input, now)).toHaveLength(1);
-    expect(groupChats([], now)).toEqual([]);
-    expect(chats[0].id).toBe("old");
+    assert.equal(groupChats(input, now).length, 1);
+    assert.deepEqual(groupChats([], now), []);
+    assert.equal(chats[0].id, "old");
   });
 });

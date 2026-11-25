@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { isSafeMarkdownUrl } from "./markdownSafety";
 
 // Small, dependency-free Markdown renderer. Builds React elements only (no raw HTML),
 // so model output can never inject markup. Tolerates half-finished text while streaming.
@@ -18,7 +19,7 @@ function renderInline(text, keyPrefix) {
     if (part.startsWith("*") && part.endsWith("*") && part.length > 2) return <em key={key}>{renderInline(part.slice(1, -1), key)}</em>;
     const link = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
     if (link) {
-      const safe = /^https?:\/\//i.test(link[2]);
+      const safe = isSafeMarkdownUrl(link[2]);
       return safe ? <a key={key} href={link[2]} target="_blank" rel="noopener noreferrer">{link[1]}</a> : <span key={key}>{link[1]}</span>;
     }
     return part;

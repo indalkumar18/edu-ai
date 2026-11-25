@@ -14,7 +14,7 @@ export default async function protect(req, res, next) {
 
   try {
     const token = authHeader.slice(7).trim();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     const user = await User.findById(decoded.id).select("name email preferredLanguage");
 
     if (!user) {

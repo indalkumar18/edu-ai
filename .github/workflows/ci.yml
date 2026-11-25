@@ -1,0 +1,40 @@
+name: EduXai CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    name: Tests, lint and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            eduadapt-ai/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix eduadapt-ai
+
+      - name: Run backend and frontend tests
+        run: npm test
+
+      - name: Report backend utility coverage
+        run: npm run coverage:backend
+
+      - name: Run frontend lint
+        run: npm run lint
+
+      - name: Build production frontend
+        run: npm run build

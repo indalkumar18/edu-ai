@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "seed": "node scripts/seedQuestions.js",
-    "test": "node --test"
+    "test": "node --test",
+    "test:coverage": "node --experimental-test-coverage --test tests/grading.test.js tests/authValidation.test.js tests/assessmentValidation.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

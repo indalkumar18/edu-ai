@@ -1,10 +1,10 @@
 import express from "express";
-import mongoose from "mongoose";
 import Question from "../models/Question.js";
 import Attempt from "../models/Attempt.js";
 import protect from "../middleware/authMiddleware.js";
 import { feedbackFor, gradeQuestions } from "../utils/grading.js";
 import requireDatabase from "../middleware/requireDatabase.js";
+import { validateAssessmentSubmission, validateSelectionsAgainstQuestions } from "../utils/assessmentValidation.js";
 
 const router = express.Router();
 router.use(protect, requireDatabase);
@@ -20,7 +20,7 @@ router.get("/topics", async (_req, res) => {
 
 router.get("/questions/:topic", async (req, res) => {
   try {
-    const topic = decodeURIComponent(req.params.topic).trim();
+    const topic = String(req.params.topic || "").trim();
     const questions = await Question.find({ topic }).sort({ _id: 1 }).limit(20)
       .select("topic question options difficulty");
     if (!questions.length) return res.status(404).json({ message: "No questions found for this topic. Run npm run seed in backend first." });
@@ -32,25 +32,28 @@ router.get("/questions/:topic", async (req, res) => {
 
 router.post("/submit", async (req, res) => {
   try {
-    const { topic, answers } = req.body || {};
-    if (!topic || !Array.isArray(answers) || !answers.length) {
-      return res.status(400).json({ message: "Topic and answers are required." });
-    }
-    const normalizedAnswers = answers.filter(item => item && mongoose.isValidObjectId(item.questionId));
+    const validation = validateAssessmentSubmission(req.body);
+    if (validation.error) return res.status(400).json({ message: validation.error });
+    const { topic, answers: normalizedAnswers } = validation.value;
     const ids = normalizedAnswers.map(item => item.questionId);
-    if (!ids.length) return res.status(400).json({ message: "No valid answers were submitted." });
 
     const questions = await Question.find({ _id: { $in: ids }, topic });
     if (questions.length !== ids.length) return res.status(400).json({ message: "Some submitted questions are invalid." });
 
-    const answerMap = new Map(normalizedAnswers.map(item => [String(item.questionId), Number(item.selectedOption)]));
+    const selectionValidation = validateSelectionsAgainstQuestions(normalizedAnswers, questions);
+    if (selectionValidation.error) {
+      return res.status(400).json({ message: selectionValidation.error });
+    }
+
+    const answerMap = new Map(normalizedAnswers.map(item => [item.questionId, item.selectedOption]));
     const { gradedAnswers, score, totalQuestions, percentage } = gradeQuestions(questions, answerMap);
     const attempt = await Attempt.create({
       userId: req.user.id, topic, score, totalQuestions, percentage, answers: gradedAnswers,
     });
 
+    const gradedByQuestionId = new Map(gradedAnswers.map(answer => [String(answer.questionId), answer]));
     const result = questions.map(question => {
-      const answer = gradedAnswers.find(item => String(item.questionId) === String(question._id));
+      const answer = gradedByQuestionId.get(String(question._id));
       return {
         questionId: question._id,
         question: question.question,

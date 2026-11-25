@@ -1,12 +1,18 @@
 {
   "name": "eduxai-project",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "install:all": "npm --prefix backend install && npm --prefix eduadapt-ai install",
     "backend": "npm --prefix backend run dev",
     "frontend": "npm --prefix eduadapt-ai run dev",
     "seed": "npm --prefix backend run seed",
-    "test": "npm --prefix backend test && npm --prefix eduadapt-ai test"
+    "test:backend": "npm --prefix backend test",
+    "test:frontend": "npm --prefix eduadapt-ai test",
+    "test": "npm run test:backend && npm run test:frontend",
+    "lint": "npm --prefix eduadapt-ai run lint",
+    "build": "npm --prefix eduadapt-ai run build",
+    "check": "npm test && npm run lint && npm run build",
+    "coverage:backend": "npm --prefix backend run test:coverage"
   }
 }
