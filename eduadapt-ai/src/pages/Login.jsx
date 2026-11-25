@@ -4,8 +4,7 @@ import { AlertCircle } from "lucide-react";
 import AuthShell from "../components/AuthShell";
 import PasswordField from "../components/PasswordField";
 import { apiRequest, saveSession } from "../services/api";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { EMAIL_RE } from "../lib/password";
 
 export default function Login() {
   const navigate = useNavigate();

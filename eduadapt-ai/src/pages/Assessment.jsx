@@ -3,6 +3,7 @@ import {
   AlertCircle, ArrowLeft, ArrowRight, BookOpen, Braces, Check, Clock, Database, Flag, Globe, Layers, RotateCcw, X,
 } from "lucide-react";
 import { apiRequest } from "../services/api";
+import { cap, formatTime, letter, scoreTone } from "../lib/quiz";
 import "../styles/quiz.css";
 
 const TOPIC_META = {
@@ -12,14 +13,11 @@ const TOPIC_META = {
   "JavaScript": { icon: Braces, desc: "Core language concepts and the DOM." },
 };
 
-const formatTime = seconds => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-const letter = index => String.fromCharCode(65 + index);
-const cap = value => (value ? value.charAt(0).toUpperCase() + value.slice(1) : "");
 
 function ScoreRing({ percentage }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
-  const tone = percentage >= 80 ? "good" : percentage >= 50 ? "mid" : "bad";
+  const tone = scoreTone(percentage);
   return (
     <div className={`ring ring-${tone}`} role="img" aria-label={`Score ${Math.round(percentage)} percent`}>
       <svg viewBox="0 0 128 128" width="148" height="148">
@@ -216,7 +214,7 @@ export default function Assessment() {
   if (result) {
     const incorrect = result.results.filter(item => !item.isCorrect && item.selectedOption !== -1).length;
     const skipped = result.results.filter(item => item.selectedOption === -1).length;
-    const tone = result.percentage >= 80 ? "good" : result.percentage >= 50 ? "mid" : "bad";
+    const tone = scoreTone(result.percentage);
     return (
       <section className="page">
         <header className="page-head">

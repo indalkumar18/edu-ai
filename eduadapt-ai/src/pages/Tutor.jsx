@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, ArrowDown, Check, Copy, PanelLeft, Plus, RotateCcw, Square, Trash2, X, MessageSquare } from "lucide-react";
 import { LogoMark } from "../components/Logo";
 import Markdown from "../lib/markdown";
+import { groupChats } from "../lib/chats";
 import { apiRequest, streamRequest } from "../services/api";
 import "../styles/chat.css";
 
@@ -29,17 +30,6 @@ function loadChats(key) {
     const parsed = JSON.parse(localStorage.getItem(key) || "[]");
     return Array.isArray(parsed) ? parsed : [];
   } catch { return []; }
-}
-
-function groupChats(chats) {
-  const now = Date.now();
-  const day = 86400000;
-  const groups = { Today: [], "Previous 7 days": [], Older: [] };
-  [...chats].sort((a, b) => b.updatedAt - a.updatedAt).forEach(chat => {
-    const age = now - chat.updatedAt;
-    (age < day ? groups.Today : age < 7 * day ? groups["Previous 7 days"] : groups.Older).push(chat);
-  });
-  return Object.entries(groups).filter(([, list]) => list.length);
 }
 
 function CopyButton({ text }) {

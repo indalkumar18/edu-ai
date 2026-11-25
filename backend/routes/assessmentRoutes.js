@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Question from "../models/Question.js";
 import Attempt from "../models/Attempt.js";
 import protect from "../middleware/authMiddleware.js";
+import { feedbackFor, gradeQuestions } from "../utils/grading.js";
 import requireDatabase from "../middleware/requireDatabase.js";
 
 const router = express.Router();
@@ -43,21 +44,7 @@ router.post("/submit", async (req, res) => {
     if (questions.length !== ids.length) return res.status(400).json({ message: "Some submitted questions are invalid." });
 
     const answerMap = new Map(normalizedAnswers.map(item => [String(item.questionId), Number(item.selectedOption)]));
-    const gradedAnswers = questions.map(question => {
-      const selectedOption = answerMap.has(String(question._id)) ? answerMap.get(String(question._id)) : -1;
-      const isCorrect = Number.isInteger(selectedOption) && selectedOption === question.correctAnswer;
-      return {
-        questionId: question._id,
-        selectedOption,
-        correctAnswer: question.correctAnswer,
-        isCorrect,
-        explanation: question.explanation || "",
-      };
-    });
-
-    const score = gradedAnswers.filter(answer => answer.isCorrect).length;
-    const totalQuestions = gradedAnswers.length;
-    const percentage = Number(((score / totalQuestions) * 100).toFixed(2));
+    const { gradedAnswers, score, totalQuestions, percentage } = gradeQuestions(questions, answerMap);
     const attempt = await Attempt.create({
       userId: req.user.id, topic, score, totalQuestions, percentage, answers: gradedAnswers,
     });
@@ -78,7 +65,7 @@ router.post("/submit", async (req, res) => {
     return res.json({
       message: "Quiz submitted successfully.", attemptId: attempt._id,
       topic, score, totalQuestions, percentage,
-      feedback: percentage >= 80 ? "Great work! You understand this topic well." : percentage >= 50 ? "Good attempt. Revise the questions you missed and try again." : "Let's review the basics of this topic and practise once more.",
+      feedback: feedbackFor(percentage),
       results: result,
     });
   } catch (error) {

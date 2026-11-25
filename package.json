@@ -6,6 +6,7 @@
     "install:all": "npm --prefix backend install && npm --prefix eduadapt-ai install",
     "backend": "npm --prefix backend run dev",
     "frontend": "npm --prefix eduadapt-ai run dev",
-    "seed": "npm --prefix backend run seed"
+    "seed": "npm --prefix backend run seed",
+    "test": "npm --prefix backend test && npm --prefix eduadapt-ai test"
   }
 }
